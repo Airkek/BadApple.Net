@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Media;
-using System.Threading;
 using BadApple.Net.Utils;
 
 namespace BadApple.Net
 {
     internal static class Program
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             var frameFiles = Directory.GetFiles("pics");
             Console.SetWindowSize(81, 30);
@@ -53,16 +52,24 @@ namespace BadApple.Net
 
             Console.Title = "Playing!";
 
-            
-            const double frameLimit = 1000f / 31.4;
-            var sw = Stopwatch.StartNew();
+
+            const double fps = 25;
+            const double frameTime = 1000f / fps;
 
             var sp = new SoundPlayer("audio.wav");
             sp.Play();
-            
-            foreach (var frame in frames)
+            var sw = Stopwatch.StartNew();
+
+            var lastFrame = -1;
+            for (var frameIndex = 0; frameIndex < frames.Count; frameIndex = (int)(sw.ElapsedMilliseconds / frameTime))
             {
-                var startDrawTime = sw.Elapsed.TotalMilliseconds;
+                if (lastFrame == frameIndex)
+                {
+                    continue;
+                }
+
+                lastFrame = frameIndex;
+                var frame = frames[frameIndex];
                 Console.SetCursorPosition(0, 0);
 
                 foreach (var x in frame)
@@ -70,11 +77,6 @@ namespace BadApple.Net
                     Console.BackgroundColor = x.Color;
                     Console.Write(x.Text);
                 }
-
-                var durationTime = sw.Elapsed.TotalMilliseconds - startDrawTime;
-
-                if (durationTime < frameLimit)
-                    Thread.Sleep((int)(frameLimit - durationTime));
             }
 
             Console.Title = "End";
